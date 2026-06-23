@@ -171,6 +171,32 @@ function render(data, scroll = true) {
   show(report);
   if (scroll) report.scrollIntoView({ behavior: "smooth", block: "start" });
   refreshLeaderboard();
+  loadReportNews(data.ticker);
+}
+
+async function loadReportNews(ticker) {
+  const wrap = document.getElementById("r-news");
+  const label = document.getElementById("r-news-label");
+  wrap.innerHTML = ""; label.classList.add("hidden");
+  try {
+    const res = await fetch(`/api/news/${encodeURIComponent(ticker)}?n=6`);
+    if (!res.ok) return;
+    const { articles } = await res.json();
+    if (!articles || !articles.length) return;
+    articles.forEach((a) => {
+      const el = document.createElement(a.link ? "a" : "div");
+      el.className = "news-item";
+      if (a.link) { el.href = a.link; el.target = "_blank"; el.rel = "noopener"; }
+      const when = a.published ? new Date(a.published) : null;
+      const meta = [a.publisher, when && !isNaN(when) ? when.toLocaleDateString() : null]
+        .filter(Boolean).join(" · ");
+      el.innerHTML =
+        `<span class="news-title">${a.title}</span>` +
+        (meta ? `<span class="news-meta">${meta}</span>` : "");
+      wrap.appendChild(el);
+    });
+    label.classList.remove("hidden");
+  } catch (_) { /* ignore */ }
 }
 
 async function analyze(ticker, opts = {}) {
@@ -198,33 +224,58 @@ async function analyze(ticker, opts = {}) {
   }
 }
 
-// ---- Top-scored leaderboard ----
-const leaderboard = document.getElementById("leaderboard");
+// ---- Top-scored leaderboard (right rail) ----
 const lbItems = document.getElementById("lb-items");
 
 async function refreshLeaderboard() {
   try {
-    const res = await fetch("/api/leaderboard?n=5");
+    const res = await fetch("/api/leaderboard?n=10");
     if (!res.ok) return;
     const { top, total } = await res.json();
-    if (!top || !top.length) { leaderboard.classList.add("hidden"); return; }
     const totalEl = document.getElementById("lb-total");
-    if (totalEl) totalEl.textContent = total ? ` · of ${total} analyzed` : "";
+    if (totalEl) totalEl.textContent = total ? `${total} analyzed` : "";
+    if (!top || !top.length) { lbItems.innerHTML = '<div class="rail-empty">Scoring universe…</div>'; return; }
     lbItems.innerHTML = "";
     top.forEach((s, i) => {
-      const el = document.createElement("button");
-      el.className = "lb-item";
+      const el = document.createElement("div");
+      el.className = "rail-item";
+      el.setAttribute("role", "button");
       el.style.setProperty("--c", scoreColor(s.final_score));
       el.innerHTML =
-        `<span class="lb-rank">${i + 1}</span>` +
-        `<span class="lb-ticker">${s.ticker}</span>` +
-        `<span class="lb-score">${s.final_score.toFixed(1)}</span>`;
+        `<div class="rail-row1">` +
+          `<span class="rail-rank">${i + 1}</span>` +
+          `<span class="rail-ticker">${s.ticker}</span>` +
+          `<span class="rail-score">${s.final_score.toFixed(1)}</span>` +
+        `</div>` +
+        `<div class="rail-bar"><span style="width:${s.final_score}%"></span></div>` +
+        (s.name ? `<div class="rail-name">${s.name}</div>` : "");
       el.title = `${s.name ? s.name + " — " : ""}${s.rating} (${s.final_score.toFixed(1)}/100)`;
       el.addEventListener("click", () => { input.value = s.ticker; analyze(s.ticker); });
       lbItems.appendChild(el);
+      if (i < 5) loadRailHeadline(s.ticker, el);  // top 5 get a headline
     });
-    leaderboard.classList.remove("hidden");
   } catch (_) { /* ignore */ }
+}
+
+const railHeadlineCache = new Map();  // ticker -> headline {title, link}
+async function loadRailHeadline(ticker, itemEl) {
+  let head = railHeadlineCache.get(ticker);
+  if (head === undefined) {
+    try {
+      const res = await fetch(`/api/news/${encodeURIComponent(ticker)}?n=1`);
+      const { articles } = res.ok ? await res.json() : { articles: [] };
+      head = (articles && articles[0]) || null;
+    } catch (_) { head = null; }
+    railHeadlineCache.set(ticker, head);
+  }
+  if (!head || !itemEl.isConnected) return;
+  const a = document.createElement(head.link ? "a" : "div");
+  a.className = "rail-news";
+  if (head.link) { a.href = head.link; a.target = "_blank"; a.rel = "noopener"; }
+  a.textContent = head.title;
+  a.title = head.title;
+  a.addEventListener("click", (e) => e.stopPropagation());  // don't trigger analyze
+  itemEl.appendChild(a);
 }
 
 form.addEventListener("submit", (e) => {

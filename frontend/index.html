@@ -22,13 +22,7 @@
     </div>
   </header>
 
-  <div id="leaderboard" class="leaderboard hidden">
-    <div class="leaderboard-inner">
-      <span class="lb-label">Top scored<span id="lb-total" class="lb-total"></span></span>
-      <div id="lb-items" class="lb-items"></div>
-    </div>
-  </div>
-
+  <div class="layout">
   <main class="sheet">
     <section class="hero">
       <h1 class="hero-title">A research-grade verdict on any US equity.</h1>
@@ -146,6 +140,9 @@
       <h3 class="section-label">Metric detail</h3>
       <div id="r-metrics" class="metric-tables"></div>
 
+      <h3 id="r-news-label" class="section-label hidden">Recent news</h3>
+      <div id="r-news" class="news-list"></div>
+
       <p class="disclaimer">
         For research and educational purposes only. Not investment advice.
         Scores are relative to a computed peer set and depend on data
@@ -153,6 +150,16 @@
       </p>
     </article>
   </main>
+
+  <aside class="rail">
+    <div class="rail-head">
+      <span class="rail-title">Top scored</span>
+      <span id="lb-total" class="rail-total"></span>
+    </div>
+    <div id="lb-items" class="rail-list"></div>
+    <p class="rail-note">Peer-relative scores across the analyzed large-cap universe.</p>
+  </aside>
+  </div>
 
   <footer class="footer">
     <span>Stock Scorer</span>

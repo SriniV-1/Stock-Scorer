@@ -127,9 +127,56 @@ def _serialize(result, cached: bool) -> Dict[str, Any]:
     }
 
 
+_news_cache: Dict[str, tuple[float, list]] = {}
+_NEWS_TTL_SECONDS = 30 * 60
+
+
+def _fetch_news(ticker: str) -> list:
+    now = time.time()
+    with _cache_lock:
+        hit = _news_cache.get(ticker)
+        if hit and now - hit[0] < _NEWS_TTL_SECONDS:
+            return hit[1]
+    articles: list = []
+    try:
+        import yfinance as yf
+
+        for item in (yf.Ticker(ticker).news or []):
+            c = item.get("content", item)  # yfinance new (nested) vs old (flat)
+            title = c.get("title")
+            if not title:
+                continue
+            prov = c.get("provider")
+            publisher = prov.get("displayName") if isinstance(prov, dict) else item.get("publisher")
+            link = None
+            for k in ("clickThroughUrl", "canonicalUrl"):
+                v = c.get(k)
+                if isinstance(v, dict) and v.get("url"):
+                    link = v["url"]
+                    break
+            link = link or item.get("link")
+            articles.append({
+                "title": title,
+                "publisher": publisher,
+                "link": link,
+                "published": str(c.get("pubDate") or item.get("providerPublishTime") or ""),
+            })
+    except Exception as e:
+        logger.info("news fetch failed for %s: %s", ticker, e)
+    with _cache_lock:
+        _news_cache[ticker] = (now, articles)
+    return articles
+
+
 @app.get("/api/health")
 def health() -> Dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/news/{ticker}")
+def news(ticker: str, n: int = 6) -> Dict[str, Any]:
+    ticker = ticker.strip().upper()
+    return {"ticker": ticker, "articles": _fetch_news(ticker)[: max(1, n)]}
 
 
 @app.get("/api/leaderboard")
