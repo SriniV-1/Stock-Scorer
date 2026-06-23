@@ -247,8 +247,7 @@ async function refreshLeaderboard() {
           `<span class="rail-ticker">${s.ticker}</span>` +
           `<span class="rail-score">${s.final_score.toFixed(1)}</span>` +
         `</div>` +
-        `<div class="rail-bar"><span style="width:${s.final_score}%"></span></div>` +
-        (s.name ? `<div class="rail-name">${s.name}</div>` : "");
+        `<div class="rail-bar"><span style="width:${s.final_score}%"></span></div>`;
       el.title = `${s.name ? s.name + " — " : ""}${s.rating} (${s.final_score.toFixed(1)}/100)`;
       el.addEventListener("click", () => { input.value = s.ticker; analyze(s.ticker); });
       lbItems.appendChild(el);
