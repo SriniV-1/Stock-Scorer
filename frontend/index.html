@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock Scorer — Peer-Relative Fundamental Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="wordmark">
+        <span class="wordmark-mark">§</span>
+        <span class="wordmark-text">STOCK&nbsp;SCORER</span>
+      </div>
+      <p class="masthead-tagline">Peer-relative fundamental scoring · valuation · growth · profitability · risk</p>
+    </div>
+  </header>
+
+  <main class="sheet">
+    <section class="hero">
+      <h1 class="hero-title">A research-grade verdict on any US equity.</h1>
+      <p class="hero-sub">
+        Enter a ticker. The engine pulls fundamentals, benchmarks them against a
+        live peer set, and returns a transparent 0&ndash;100 score across four
+        weighted categories &mdash; with every metric shown.
+      </p>
+
+      <form id="search-form" class="search" autocomplete="off">
+        <input
+          id="ticker-input"
+          class="search-input"
+          type="text"
+          placeholder="AAPL"
+          aria-label="Stock ticker"
+          maxlength="8"
+          spellcheck="false"
+        />
+        <button id="search-btn" class="search-btn" type="submit">Analyze</button>
+      </form>
+      <div class="examples">
+        <span>Try</span>
+        <button class="chip" data-ticker="AAPL">AAPL</button>
+        <button class="chip" data-ticker="MSFT">MSFT</button>
+        <button class="chip" data-ticker="NVDA">NVDA</button>
+        <button class="chip" data-ticker="KO">KO</button>
+        <button class="chip" data-ticker="JPM">JPM</button>
+      </div>
+    </section>
+
+    <!-- Loading -->
+    <section id="loading" class="loading hidden" aria-live="polite">
+      <div class="loading-bar"><span></span></div>
+      <p id="loading-text">Pulling fundamentals and assembling peer set&hellip;</p>
+    </section>
+
+    <!-- Error -->
+    <section id="error" class="error hidden" role="alert">
+      <p id="error-text"></p>
+    </section>
+
+    <!-- Report -->
+    <article id="report" class="report hidden">
+      <div class="report-rule"></div>
+
+      <div class="report-head">
+        <div class="report-id">
+          <h2 id="r-ticker" class="r-ticker">—</h2>
+          <p id="r-summary" class="r-summary"></p>
+          <p id="r-meta" class="r-meta"></p>
+        </div>
+        <div class="scorebox">
+          <div class="scorebox-num"><span id="r-score">0</span><span class="scorebox-den">/100</span></div>
+          <div id="r-rating" class="scorebox-rating">—</div>
+        </div>
+      </div>
+
+      <div id="r-verdict" class="verdict">
+        <span class="verdict-label">Verdict</span>
+        <p id="r-action"></p>
+      </div>
+
+      <div id="r-warnings" class="warnings hidden">
+        <span class="warnings-label">Contextual flags</span>
+        <ul id="r-warnings-list"></ul>
+      </div>
+
+      <h3 class="section-label">Category breakdown</h3>
+      <div id="r-categories" class="categories"></div>
+
+      <h3 class="section-label">Metric detail</h3>
+      <div id="r-metrics" class="metric-tables"></div>
+
+      <p class="disclaimer">
+        For research and educational purposes only. Not investment advice.
+        Scores are relative to a computed peer set and depend on data
+        availability from the upstream provider.
+      </p>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <span>Stock Scorer</span>
+    <span class="footer-dot">·</span>
+    <span>Python · FastAPI · pandas · yfinance</span>
+    <span class="footer-dot">·</span>
+    <span>11 metrics → 4 categories → 1 score</span>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
