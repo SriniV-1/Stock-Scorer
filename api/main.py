@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 import time
 from pathlib import Path
-from threading import Lock
+from threading import Lock, Thread
 from typing import Any, Dict, Optional
 
 from fastapi import FastAPI, HTTPException
@@ -57,6 +57,24 @@ for _category, _metrics in METRICS.items():
 _CACHE_TTL_SECONDS = 60 * 60  # 1 hour
 _cache: Dict[str, tuple[float, Dict[str, Any]]] = {}
 _cache_lock = Lock()
+
+# Company display names, looked up lazily from Yahoo and memoized.
+_name_cache: Dict[str, Optional[str]] = {}
+
+
+def _company_name(ticker: str) -> Optional[str]:
+    if ticker in _name_cache:
+        return _name_cache[ticker]
+    name: Optional[str] = None
+    try:
+        import yfinance as yf
+
+        info = yf.Ticker(ticker).info
+        name = info.get("longName") or info.get("shortName")
+    except Exception as e:  # name is best-effort; never block scoring
+        logger.info("name lookup failed for %s: %s", ticker, e)
+    _name_cache[ticker] = name
+    return name
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 
@@ -114,6 +132,41 @@ def health() -> Dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/api/leaderboard")
+def leaderboard(n: int = 5) -> Dict[str, Any]:
+    """Top-N highest-scoring tickers seen so far (from the score cache)."""
+    with _cache_lock:
+        rows = [p for _, p in _cache.values()]
+    rows.sort(key=lambda p: p["final_score"], reverse=True)
+    top = [
+        {"ticker": p["ticker"], "final_score": p["final_score"], "rating": p["rating"]}
+        for p in rows[: max(1, n)]
+    ]
+    return {"top": top}
+
+
+# Warm the leaderboard in the background so the bar isn't empty on first load.
+_SEED_TICKERS = ["AAPL", "MSFT", "NVDA", "GOOGL", "JPM", "KO", "AMZN", "META"]
+
+
+def _seed_leaderboard() -> None:
+    for t in _SEED_TICKERS:
+        try:
+            result = _engine.score_stock(t)
+            if result is not None:
+                payload = _serialize(result, cached=False)
+                payload["name"] = _company_name(t)
+                with _cache_lock:
+                    _cache[t] = (time.time(), payload)
+        except Exception as e:  # never let seeding crash the app
+            logger.info("seed score failed for %s: %s", t, e)
+
+
+@app.on_event("startup")
+def _on_startup() -> None:
+    Thread(target=_seed_leaderboard, daemon=True).start()
+
+
 @app.get("/api/score/{ticker}")
 def score(ticker: str, refresh: bool = False) -> Dict[str, Any]:
     ticker = ticker.strip().upper()
@@ -139,6 +192,7 @@ def score(ticker: str, refresh: bool = False) -> Dict[str, Any]:
         )
 
     payload = _serialize(result, cached=False)
+    payload["name"] = _company_name(ticker)
     with _cache_lock:
         _cache[ticker] = (now, payload)
     return payload

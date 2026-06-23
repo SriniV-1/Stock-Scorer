@@ -78,6 +78,9 @@ function countUp(el, target) {
 function render(data) {
   // Header
   document.getElementById("r-ticker").textContent = data.ticker;
+  const nameEl = document.getElementById("r-name");
+  if (data.name) { nameEl.textContent = data.name; nameEl.classList.remove("hidden"); }
+  else { nameEl.classList.add("hidden"); }
   document.getElementById("r-summary").textContent = data.summary;
   const when = new Date(data.timestamp);
   document.getElementById("r-meta").textContent =
@@ -167,6 +170,7 @@ function render(data) {
 
   show(report);
   report.scrollIntoView({ behavior: "smooth", block: "start" });
+  refreshLeaderboard();
 }
 
 async function analyze(ticker) {
@@ -193,6 +197,33 @@ async function analyze(ticker) {
   }
 }
 
+// ---- Top-scored leaderboard ----
+const leaderboard = document.getElementById("leaderboard");
+const lbItems = document.getElementById("lb-items");
+
+async function refreshLeaderboard() {
+  try {
+    const res = await fetch("/api/leaderboard?n=5");
+    if (!res.ok) return;
+    const { top } = await res.json();
+    if (!top || !top.length) { leaderboard.classList.add("hidden"); return; }
+    lbItems.innerHTML = "";
+    top.forEach((s, i) => {
+      const el = document.createElement("button");
+      el.className = "lb-item";
+      el.style.setProperty("--c", scoreColor(s.final_score));
+      el.innerHTML =
+        `<span class="lb-rank">${i + 1}</span>` +
+        `<span class="lb-ticker">${s.ticker}</span>` +
+        `<span class="lb-score">${s.final_score.toFixed(1)}</span>`;
+      el.title = `${s.ticker} — ${s.rating} (${s.final_score.toFixed(1)}/100)`;
+      el.addEventListener("click", () => { input.value = s.ticker; analyze(s.ticker); });
+      lbItems.appendChild(el);
+    });
+    leaderboard.classList.remove("hidden");
+  } catch (_) { /* ignore */ }
+}
+
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   analyze(input.value);
@@ -206,3 +237,11 @@ document.querySelectorAll(".chip").forEach((chip) => {
 });
 
 input.focus();
+
+// Poll the leaderboard while the server seeds it in the background.
+refreshLeaderboard();
+let lbPolls = 0;
+const lbTimer = setInterval(() => {
+  refreshLeaderboard();
+  if (++lbPolls >= 12) clearInterval(lbTimer);  // ~1 min of warm-up polling
+}, 5000);

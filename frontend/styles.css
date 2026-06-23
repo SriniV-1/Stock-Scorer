@@ -62,6 +62,37 @@ body {
   text-transform: uppercase; letter-spacing: .08em;
 }
 
+/* ---------- Leaderboard bar ---------- */
+.leaderboard {
+  position: relative; z-index: 1;
+  background: var(--paper-2);
+  border-bottom: 1px solid var(--rule);
+}
+.leaderboard-inner {
+  max-width: 920px; margin: 0 auto; padding: 10px 28px;
+  display: flex; align-items: center; gap: 16px;
+}
+.lb-label {
+  font-family: var(--mono); font-size: .64rem; text-transform: uppercase;
+  letter-spacing: .14em; color: var(--ink-faint); white-space: nowrap; flex: none;
+}
+.lb-items { display: flex; gap: 8px; flex-wrap: wrap; }
+.lb-item {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  background: #fffdf7; border: 1px solid var(--rule); border-left: 3px solid var(--c);
+  padding: 5px 11px 5px 9px; transition: border-color .15s, transform .1s;
+}
+.lb-item:hover { border-color: var(--c); transform: translateY(-1px); }
+.lb-rank {
+  font-family: var(--mono); font-size: .6rem; color: var(--ink-faint);
+  border: 1px solid var(--rule); border-radius: 50%; width: 15px; height: 15px;
+  display: grid; place-items: center; flex: none;
+}
+.lb-ticker { font-family: var(--sans); font-weight: 700; font-size: .82rem; letter-spacing: .03em; }
+.lb-score { font-family: var(--mono); font-weight: 600; font-size: .82rem; color: var(--c); }
+
+@media (max-width: 560px) { .lb-label { display: none; } }
+
 /* ---------- Sheet ---------- */
 .sheet {
   position: relative; z-index: 1;
@@ -143,6 +174,7 @@ body {
   font-family: var(--serif); font-weight: 600; font-size: 3rem; line-height: 1;
   letter-spacing: -.02em;
 }
+.r-name { margin-top: 4px; font-family: var(--serif); font-style: italic; font-size: 1.25rem; color: var(--ink-soft); }
 .r-summary { margin-top: 12px; font-size: 1.02rem; color: var(--ink-soft); max-width: 480px; }
 .r-meta {
   margin-top: 10px; font-family: var(--mono); font-size: .7rem; color: var(--ink-faint);
