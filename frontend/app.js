@@ -75,7 +75,7 @@ function countUp(el, target) {
   requestAnimationFrame(frame);
 }
 
-function render(data) {
+function render(data, scroll = true) {
   // Header
   document.getElementById("r-ticker").textContent = data.ticker;
   const nameEl = document.getElementById("r-name");
@@ -169,11 +169,12 @@ function render(data) {
   });
 
   show(report);
-  report.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (scroll) report.scrollIntoView({ behavior: "smooth", block: "start" });
   refreshLeaderboard();
 }
 
-async function analyze(ticker) {
+async function analyze(ticker, opts = {}) {
+  const { scroll = true } = opts;
   ticker = (ticker || "").trim().toUpperCase();
   if (!ticker) return;
   startLoading();
@@ -188,7 +189,7 @@ async function analyze(ticker) {
       return;
     }
     const data = await res.json();
-    render(data);
+    render(data, scroll);
   } catch (e) {
     stopLoading();
     errorText.textContent =
@@ -205,8 +206,10 @@ async function refreshLeaderboard() {
   try {
     const res = await fetch("/api/leaderboard?n=5");
     if (!res.ok) return;
-    const { top } = await res.json();
+    const { top, total } = await res.json();
     if (!top || !top.length) { leaderboard.classList.add("hidden"); return; }
+    const totalEl = document.getElementById("lb-total");
+    if (totalEl) totalEl.textContent = total ? ` · of ${total} analyzed` : "";
     lbItems.innerHTML = "";
     top.forEach((s, i) => {
       const el = document.createElement("button");
@@ -216,7 +219,7 @@ async function refreshLeaderboard() {
         `<span class="lb-rank">${i + 1}</span>` +
         `<span class="lb-ticker">${s.ticker}</span>` +
         `<span class="lb-score">${s.final_score.toFixed(1)}</span>`;
-      el.title = `${s.ticker} — ${s.rating} (${s.final_score.toFixed(1)}/100)`;
+      el.title = `${s.name ? s.name + " — " : ""}${s.rating} (${s.final_score.toFixed(1)}/100)`;
       el.addEventListener("click", () => { input.value = s.ticker; analyze(s.ticker); });
       lbItems.appendChild(el);
     });
@@ -238,10 +241,22 @@ document.querySelectorAll(".chip").forEach((chip) => {
 
 input.focus();
 
-// Poll the leaderboard while the server seeds it in the background.
-refreshLeaderboard();
+// On arrival, show a featured report (top-ranked stock, else AAPL) so the page
+// isn't empty — without scrolling the user away from the hero/methodology.
+async function init() {
+  await refreshLeaderboard();
+  let featured = "AAPL";
+  try {
+    const r = await fetch("/api/leaderboard?n=1");
+    if (r.ok) { const { top } = await r.json(); if (top && top[0]) featured = top[0].ticker; }
+  } catch (_) { /* ignore */ }
+  analyze(featured, { scroll: false });
+}
+init();
+
+// Poll the leaderboard while the server seeds the universe in the background.
 let lbPolls = 0;
 const lbTimer = setInterval(() => {
   refreshLeaderboard();
-  if (++lbPolls >= 12) clearInterval(lbTimer);  // ~1 min of warm-up polling
+  if (++lbPolls >= 24) clearInterval(lbTimer);  // ~2 min of warm-up polling
 }, 5000);

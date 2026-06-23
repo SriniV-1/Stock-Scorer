@@ -138,6 +138,59 @@ body {
 }
 .chip:hover { border-color: var(--accent); color: var(--accent); background: #fffdf7; }
 
+/* ---------- Methodology ---------- */
+.method { padding: 8px 0 20px; }
+.method-head { max-width: 640px; margin-bottom: 32px; }
+.method-kicker {
+  font-family: var(--mono); font-size: .66rem; text-transform: uppercase;
+  letter-spacing: .16em; color: var(--accent);
+}
+.method-title {
+  font-family: var(--serif); font-weight: 500; font-size: clamp(1.5rem, 3vw, 2.1rem);
+  line-height: 1.12; letter-spacing: -.01em; margin: 12px 0 14px;
+}
+.method-lede { font-size: 1rem; color: var(--ink-soft); }
+.method-lede em { font-style: italic; color: var(--ink); }
+
+.method-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 30px;
+}
+.pillar {
+  background: #fffdf7; border: 1px solid var(--rule); padding: 18px 18px 16px;
+  box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px;
+}
+.pillar-top { display: flex; align-items: baseline; justify-content: space-between; }
+.pillar-name { font-family: var(--serif); font-weight: 600; font-size: 1.18rem; }
+.pillar-weight { font-family: var(--mono); font-weight: 600; font-size: .9rem; color: var(--accent); }
+.pillar-bar { height: 4px; background: var(--paper-2); overflow: hidden; }
+.pillar-bar span { display: block; height: 100%; background: var(--accent); }
+.pillar-metrics { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.pillar-metrics li {
+  font-family: var(--mono); font-size: .74rem; color: var(--ink-soft);
+  padding-left: 14px; position: relative;
+}
+.pillar-metrics li::before {
+  content: ""; position: absolute; left: 0; top: .5em;
+  width: 5px; height: 5px; background: var(--accent); border-radius: 50%;
+}
+
+.method-flow {
+  list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  counter-reset: step; padding-top: 4px;
+}
+.method-flow li {
+  font-family: var(--mono); font-size: .72rem; color: var(--ink-soft);
+  background: var(--paper-2); border: 1px solid var(--rule); padding: 6px 11px;
+  position: relative;
+}
+.method-flow li:not(:last-child)::after {
+  content: "→"; position: absolute; right: -15px; top: 50%; transform: translateY(-50%);
+  color: var(--ink-faint);
+}
+.method-flow .flow-end { background: var(--accent); color: var(--paper); border-color: var(--accent); font-weight: 600; }
+
+@media (max-width: 720px) { .method-grid { grid-template-columns: repeat(2, 1fr); } }
+
 /* ---------- Loading ---------- */
 .loading { padding: 48px 0; max-width: 460px; }
 .loading-bar {

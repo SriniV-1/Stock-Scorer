@@ -134,23 +134,74 @@ def health() -> Dict[str, str]:
 
 @app.get("/api/leaderboard")
 def leaderboard(n: int = 5) -> Dict[str, Any]:
-    """Top-N highest-scoring tickers seen so far (from the score cache)."""
+    """Top-N highest scores among the tickers analyzed so far.
+
+    Note: scores are peer-relative, so this ranks the stocks that have actually
+    been scored (seeded + user lookups) — it is not a market-wide ranking.
+    """
     with _cache_lock:
         rows = [p for _, p in _cache.values()]
+    total = len(rows)
     rows.sort(key=lambda p: p["final_score"], reverse=True)
     top = [
-        {"ticker": p["ticker"], "final_score": p["final_score"], "rating": p["rating"]}
+        {
+            "ticker": p["ticker"],
+            "name": p.get("name"),
+            "final_score": p["final_score"],
+            "rating": p["rating"],
+        }
         for p in rows[: max(1, n)]
     ]
-    return {"top": top}
+    return {"top": top, "total": total}
 
 
-# Warm the leaderboard in the background so the bar isn't empty on first load.
-_SEED_TICKERS = ["AAPL", "MSFT", "NVDA", "GOOGL", "JPM", "KO", "AMZN", "META"]
+# Warm the leaderboard in the background so the bar is drawn from a real,
+# diverse set of large caps rather than a handful of names.
+_SEED_TICKERS = [
+    "AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA", "AVGO",
+    "JPM", "BAC", "V", "MA", "WMT", "COST", "KO", "PEP",
+    "JNJ", "UNH", "LLY", "XOM", "CVX", "HD", "MCD", "DIS",
+    "NFLX", "AMD", "INTC", "ORCL", "CRM", "ADBE",
+]
+
+
+# Precomputed universe scores persist here so the leaderboard loads instantly
+# and survives restarts (no re-scoring the whole universe every boot).
+_UNIVERSE_FILE = Path(__file__).resolve().parent.parent / "data" / "universe_scores.json"
+
+
+def _load_universe() -> None:
+    try:
+        if _UNIVERSE_FILE.exists():
+            import json
+
+            data = json.loads(_UNIVERSE_FILE.read_text())
+            with _cache_lock:
+                for t, payload in data.items():
+                    _cache[t] = (time.time(), payload)
+            logger.info("loaded %d precomputed universe scores", len(data))
+    except Exception as e:
+        logger.info("universe load failed: %s", e)
+
+
+def _persist_universe() -> None:
+    try:
+        import json
+
+        with _cache_lock:
+            data = {t: p for t, (_, p) in _cache.items()}
+        _UNIVERSE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _UNIVERSE_FILE.write_text(json.dumps(data))
+    except Exception as e:
+        logger.info("universe persist failed: %s", e)
 
 
 def _seed_leaderboard() -> None:
     for t in _SEED_TICKERS:
+        with _cache_lock:
+            already = t in _cache
+        if already:
+            continue  # loaded from the persisted universe — don't re-score
         try:
             result = _engine.score_stock(t)
             if result is not None:
@@ -158,12 +209,14 @@ def _seed_leaderboard() -> None:
                 payload["name"] = _company_name(t)
                 with _cache_lock:
                     _cache[t] = (time.time(), payload)
+                _persist_universe()  # checkpoint after each new score
         except Exception as e:  # never let seeding crash the app
             logger.info("seed score failed for %s: %s", t, e)
 
 
 @app.on_event("startup")
 def _on_startup() -> None:
+    _load_universe()
     Thread(target=_seed_leaderboard, daemon=True).start()
 
 
@@ -195,6 +248,7 @@ def score(ticker: str, refresh: bool = False) -> Dict[str, Any]:
     payload["name"] = _company_name(ticker)
     with _cache_lock:
         _cache[ticker] = (now, payload)
+    _persist_universe()
     return payload
 
 

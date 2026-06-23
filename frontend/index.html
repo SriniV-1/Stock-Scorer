@@ -24,7 +24,7 @@
 
   <div id="leaderboard" class="leaderboard hidden">
     <div class="leaderboard-inner">
-      <span class="lb-label">Top scored</span>
+      <span class="lb-label">Top scored<span id="lb-total" class="lb-total"></span></span>
       <div id="lb-items" class="lb-items"></div>
     </div>
   </div>
@@ -58,6 +58,48 @@
         <button class="chip" data-ticker="KO">KO</button>
         <button class="chip" data-ticker="JPM">JPM</button>
       </div>
+    </section>
+
+    <!-- Methodology / how it works -->
+    <section class="method">
+      <div class="method-head">
+        <span class="method-kicker">How the score works</span>
+        <h2 class="method-title">Eleven metrics, benchmarked against peers, into four weighted pillars.</h2>
+        <p class="method-lede">
+          Every metric is scored by its <em>percentile rank within a live,
+          sector-aware peer set</em> — because a P/E of 28 means nothing in
+          isolation, only relative to the right comparables.
+        </p>
+      </div>
+
+      <div class="method-grid">
+        <div class="pillar">
+          <div class="pillar-top"><span class="pillar-name">Valuation</span><span class="pillar-weight">30%</span></div>
+          <div class="pillar-bar"><span style="width:30%"></span></div>
+          <ul class="pillar-metrics"><li>P/E ratio</li><li>PEG ratio</li><li>Price / FCF</li></ul>
+        </div>
+        <div class="pillar">
+          <div class="pillar-top"><span class="pillar-name">Growth</span><span class="pillar-weight">25%</span></div>
+          <div class="pillar-bar"><span style="width:25%"></span></div>
+          <ul class="pillar-metrics"><li>Revenue growth</li><li>EPS growth</li></ul>
+        </div>
+        <div class="pillar">
+          <div class="pillar-top"><span class="pillar-name">Profitability</span><span class="pillar-weight">25%</span></div>
+          <div class="pillar-bar"><span style="width:25%"></span></div>
+          <ul class="pillar-metrics"><li>Return on equity</li><li>Operating margin</li><li>Net margin</li></ul>
+        </div>
+        <div class="pillar">
+          <div class="pillar-top"><span class="pillar-name">Risk</span><span class="pillar-weight">20%</span></div>
+          <div class="pillar-bar"><span style="width:20%"></span></div>
+          <ul class="pillar-metrics"><li>Debt / equity</li><li>Current ratio</li><li>Beta</li></ul>
+        </div>
+      </div>
+
+      <ol class="method-flow">
+        <li>Ticker</li><li>Peer discovery</li><li>Percentile ranking</li>
+        <li>Metric scoring</li><li>Category aggregation</li><li>Contextual adjustment</li>
+        <li class="flow-end">0–100 score</li>
+      </ol>
     </section>
 
     <!-- Loading -->
