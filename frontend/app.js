@@ -251,7 +251,7 @@ async function refreshLeaderboard() {
       el.title = `${s.name ? s.name + " — " : ""}${s.rating} (${s.final_score.toFixed(1)}/100)`;
       el.addEventListener("click", () => { input.value = s.ticker; analyze(s.ticker); });
       lbItems.appendChild(el);
-      if (i < 5) loadRailHeadline(s.ticker, el);  // top 5 get a headline
+      loadRailHeadline(s.ticker, el);  // every ranked stock gets a headline
     });
   } catch (_) { /* ignore */ }
 }

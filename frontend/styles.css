@@ -47,7 +47,7 @@ body {
   background: var(--paper);
 }
 .masthead-inner {
-  max-width: 1240px; margin: 0 auto; padding: 18px 28px 14px;
+  max-width: 1460px; margin: 0 auto; padding: 18px 36px 14px;
   display: flex; align-items: baseline; justify-content: space-between; gap: 20px;
   flex-wrap: wrap;
 }
@@ -65,17 +65,17 @@ body {
 /* ---------- Layout (left content + right rail) ---------- */
 .layout {
   position: relative; z-index: 1;
-  max-width: 1240px; margin: 0 auto; padding: 0 28px 80px;
-  display: flex; gap: 44px; align-items: flex-start;
+  max-width: 1460px; margin: 0 auto; padding: 0 36px 80px;
+  display: flex; gap: 40px; align-items: flex-start;
 }
 .sheet { flex: 1; min-width: 0; }
 
 /* ---------- Right rail leaderboard (static, full height) ---------- */
 .rail {
-  width: 300px; flex: none;
+  width: 360px; flex: none;
   position: sticky; top: 0; height: 100vh;
   display: flex; flex-direction: column;
-  padding: 22px 0 18px; box-sizing: border-box;
+  padding: 20px 0 12px; box-sizing: border-box;
 }
 .rail-head {
   display: flex; align-items: baseline; justify-content: space-between;
@@ -96,7 +96,7 @@ body {
 .rail-item {
   display: block; width: 100%; text-align: left; cursor: pointer;
   background: #fffdf7; border: 1px solid var(--rule); border-left: 3px solid var(--c);
-  padding: 7px 11px; transition: border-color .15s, transform .1s, box-shadow .15s;
+  padding: 6px 11px; transition: border-color .15s, transform .1s, box-shadow .15s;
 }
 .rail-item:hover { border-color: var(--c); transform: translateX(-2px); box-shadow: var(--shadow); }
 .rail-row1 { display: flex; align-items: baseline; gap: 8px; }
@@ -109,12 +109,13 @@ body {
 .rail-bar { height: 4px; background: var(--paper-2); margin-top: 6px; overflow: hidden; }
 .rail-bar span { display: block; height: 100%; background: var(--c); transition: width .8s cubic-bezier(.2,.7,.2,1); }
 .rail-news {
-  display: block; margin-top: 6px; padding-top: 6px; border-top: 1px dotted var(--rule);
-  font-family: var(--serif); font-size: .72rem; line-height: 1.25; color: var(--ink-soft);
+  display: block; margin-top: 5px; padding-top: 5px; border-top: 1px dotted var(--rule);
+  font-family: var(--serif); font-size: .73rem; line-height: 1.2; color: var(--ink-soft);
   text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.rail-news:empty { display: none; }
 a.rail-news:hover { color: var(--accent); text-decoration: underline; }
-.rail-note { font-family: var(--mono); font-size: .58rem; color: var(--ink-faint); margin-top: 10px; line-height: 1.5; flex: none; }
+.rail-note { font-family: var(--mono); font-size: .56rem; color: var(--ink-faint); margin-top: 8px; line-height: 1.4; flex: none; }
 
 @media (max-width: 900px) {
   .layout { flex-direction: column; }
@@ -355,7 +356,7 @@ a.news-item:hover .news-title { color: var(--accent); text-decoration: underline
 /* ---------- Footer ---------- */
 .footer {
   position: relative; z-index: 1;
-  max-width: 1240px; margin: 0 auto; padding: 22px 28px 40px;
+  max-width: 1460px; margin: 0 auto; padding: 22px 36px 40px;
   border-top: 1px solid var(--rule);
   font-family: var(--mono); font-size: .7rem; color: var(--ink-faint);
   display: flex; gap: 10px; flex-wrap: wrap; letter-spacing: .04em;
